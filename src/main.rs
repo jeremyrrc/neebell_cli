@@ -1,7 +1,7 @@
 mod frames;
 mod util;
 
-pub const HOST: &'static str = "http://127.0.0.1:8000/";
+pub const HOST: &str = "http://127.0.0.1:8000/";
 
 pub enum Frame {
     Home,
@@ -54,11 +54,12 @@ fn main() {
     use crate::Frame::*;
     let agent = ureq::agent();
     let mut frame = Frame::Home;
+    let mut user = frames::home::User { name: None };
 
     loop {
         match &mut frame {
             Home => {
-                let output = frames::home::run(&agent);
+                let output = frames::home::run(&agent, &mut user);
                 frame = respond_redirect(output, frame);
             }
             Forums => {
@@ -70,7 +71,10 @@ fn main() {
                 Err(output) => frame = respond_redirect(output, frame),
             },
             OwnedForum(forum_item) => {
-                let output = frames::forum::owned::run(&agent, forum_item);
+                let output = match frames::forum::owned::run(&agent, &user, forum_item){
+                    Ok(_) => ActionOutput::new("Finished".to_string(), Frame::Forums),
+                    Err(a) => a,
+                };
                 frame = respond_redirect(output, frame);
             }
             PermittedForums(forum_list) => match frames::forums::run_get_item(forum_list) {
@@ -78,7 +82,10 @@ fn main() {
                 Err(output) => frame = respond_redirect(output, frame),
             },
             PermittedForum(forum_item) => {
-                let output = frames::forum::permitted::run(&agent, forum_item);
+                let output = match frames::forum::permitted::run(&agent, &user, forum_item) {
+                    Ok(_) => ActionOutput::new("Finished".to_string(), Frame::Forums),
+                    Err(a) => a,
+                };
                 frame = respond_redirect(output, frame);
             }
         }

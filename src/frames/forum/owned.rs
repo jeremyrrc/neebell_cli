@@ -1,5 +1,6 @@
-use crate::frames::forum::{listen, message};
+use crate::frames::forum::{listen, message, listen_and_message};
 use crate::frames::forums::ForumListItem;
+use crate::frames::home::User;
 use crate::util::{proccess_input, stdin_line, ureq_result_to_string};
 use crate::{ActionOutput, Frame, HOST};
 
@@ -51,20 +52,18 @@ fn update_users(agent: &Agent, item: &mut ForumListItem) -> ActionOutput {
     }
 }
 
-pub fn run(agent: &Agent, forum_item: &mut ForumListItem) -> ActionOutput {
+pub fn run(agent: &Agent, user: &User, forum_item: &mut ForumListItem) -> Result<(), ActionOutput> {
     println!(
-        "Forum '{}':\n(1) 'view permitted users'\n(2) 'update permitted users'\n(3) 'listen'\n(4) 'message'",
+        "Forum '{}':\n(1) 'view permitted users'\n(2) 'update permitted users'\n(3) 'listen'\n(4) 'message'\n(5) 'listen and message'",
         forum_item.name,
     );
-    let input: u16 = match proccess_input() {
-        Ok(n) => n,
-        Err(a) => return a,
-    };
+    let input: u16 = proccess_input()?;
     match input {
-        1 => view_permitted_users(forum_item),
-        2 => update_users(agent, forum_item),
-        3 => listen(agent, forum_item),
-        4 => message(agent, forum_item),
-        _ => ActionOutput::response(format!("Action '{}' not available", input)),
+        1 => Err(view_permitted_users(forum_item)),
+        2 => Err(update_users(agent, forum_item)),
+        3 => listen(agent, user, forum_item),
+        4 => message(agent, user, forum_item),
+        5 => listen_and_message(agent, user, forum_item),
+        _ => Err(ActionOutput::response(format!("Action '{input}' not available"))),
     }
 }

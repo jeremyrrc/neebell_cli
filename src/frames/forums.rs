@@ -65,20 +65,18 @@ pub fn run(agent: &Agent) -> ActionOutput {
     }
 }
 
-pub fn items_to_prompt(items: &Vec<ForumListItem>) -> String {
+pub fn items_to_prompt(items: &[ForumListItem]) -> String {
     let mut s = String::new();
-    let mut count: u32 = 0;
-    for item in items {
+    for (count, item) in items.iter().enumerate() {
         let line = format!("({}) '{}'\n", count, item.name);
         s.push_str(&line);
-        count += 1;
     }
     s
 }
 
 pub fn run_get_item(forum_items: &mut Vec<ForumListItem>) -> Result<ForumListItem, ActionOutput> {
-    let prompt = items_to_prompt(&forum_items);
-    print!("{}", prompt);
+    let prompt = items_to_prompt(forum_items);
+    print!("{prompt}");
     let index = proccess_input::<usize>()?;
     if index >= forum_items.len() {
         return Err(ActionOutput::response(format!(
