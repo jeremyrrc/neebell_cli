@@ -23,6 +23,7 @@ fn create_user(agent: &Agent) -> ActionOutput {
     let url = format!("{}{}", HOST, "user/create");
     let result = agent
         .post(&url)
+        .set("Origin", "http://127.0.0.1:5173")
         .send_form(&[("name", &name), ("password", &password)]);
     match ureq_result_to_string(result) {
         Ok(s) => ActionOutput::response(s),
@@ -57,6 +58,7 @@ fn sign_in(agent: &Agent, user: &mut User) -> ActionOutput {
     let url = format!("{}{}", HOST, "user/sign-in");
     let result = agent
         .post(&url)
+        .set("Origin", "http://127.0.0.1:5173")
         .send_form(&[("name", &name), ("password", &password)]);
     match ureq_result_to_string(result) {
         Ok(s) => {

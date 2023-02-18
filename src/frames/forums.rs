@@ -10,7 +10,10 @@ fn create(agent: &Agent) -> ActionOutput {
     let name = stdin_line();
 
     let url = format!("{}{}", HOST, "forum/create");
-    let result = agent.post(&url).send_form(&[("name", &name)]);
+    let result = agent
+        .post(&url)
+        .set("Origin", "http://127.0.0.1:5173")
+        .send_form(&[("name", &name)]);
     match ureq_result_to_string(result) {
         Ok(s) => ActionOutput::response(s),
         Err((code, s)) => match code {
@@ -24,12 +27,15 @@ fn create(agent: &Agent) -> ActionOutput {
 pub struct ForumListItem {
     pub _id: ObjectId,
     pub name: String,
-    pub permitted_users: Vec<String>,
+    pub owner: String,
 }
 
 fn list_owned(agent: &Agent) -> ActionOutput {
     let url = format!("{}{}", HOST, "forum/list-owned");
-    let result = agent.get(&url).call();
+    let result = agent
+        .get(&url)
+        .set("Origin", "http://127.0.0.1:5173")
+        .call();
     match ureq_result_to_json::<Vec<ForumListItem>>(result) {
         Ok(v) => ActionOutput::new("Forums owned by you:".to_string(), Frame::OwnedForums(v)),
         Err((code, s)) => match code {
@@ -41,7 +47,10 @@ fn list_owned(agent: &Agent) -> ActionOutput {
 
 fn list_permitted(agent: &Agent) -> ActionOutput {
     let url = format!("{}{}", HOST, "forum/list-permitted");
-    let result = agent.get(&url).call();
+    let result = agent
+        .get(&url)
+        .set("Origin", "http://127.0.0.1:5173")
+        .call();
     match ureq_result_to_json::<Vec<ForumListItem>>(result) {
         Ok(v) => ActionOutput::new("Permitted forums:".to_string(), Frame::PermittedForums(v)),
         Err((code, s)) => match code {
